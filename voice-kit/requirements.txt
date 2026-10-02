@@ -1,0 +1,8 @@
+# install PyTorch with CUDA FIRST (see README), then:
+f5-tts-th
+pythainlp
+jieba
+pypinyin
+ssg
+faster-whisper
+soundfile

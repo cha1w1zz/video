@@ -12,7 +12,9 @@ import soundfile as sf
 
 p = argparse.ArgumentParser()
 p.add_argument("--ref", required=True)
-p.add_argument("--ref-text", required=True)
+p.add_argument("--ref-text", default=None)
+p.add_argument("--ref-text-file", default=None, help="text file from prep_ref.py")
+p.add_argument("--allow-cpu", action="store_true", help="by default the script refuses to run without an NVIDIA GPU")
 p.add_argument("--script", required=True, help="text file, one sentence per line")
 p.add_argument("--outdir", default="out")
 p.add_argument("--steps", type=int, default=32, help="16 = faster, 32 = better")
@@ -21,12 +23,16 @@ p.add_argument("--min-match", type=float, default=0.9)
 p.add_argument("--no-verify", action="store_true")
 p.add_argument("--no-polish", action="store_true", help="skip the gentle de-wind/de-hiss cleanup")
 a = p.parse_args()
+if a.ref_text_file: a.ref_text = Path(a.ref_text_file).read_text(encoding="utf-8").strip()
+if not a.ref_text: p.error("give --ref-text or --ref-text-file")
 
 import torch
 from f5_tts_th.tts import TTS
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("device:", device)
+if device != "cuda" and not a.allow_cpu:
+    raise SystemExit("No NVIDIA GPU (CUDA) found - stopping so it does not run slowly on CPU. Fix the torch CUDA install, or add --allow-cpu.")
 tts = TTS(model="v1")
 
 asr = None
@@ -46,7 +52,7 @@ for i, text in enumerate(lines, 1):
         wav = tts.infer(ref_audio=a.ref, ref_text=a.ref_text, gen_text=text,
                         step=a.steps, cfg=2.0, speed=sp)
         out = Path(a.outdir) / f"{i:03d}.wav"
-        sf.write(out, wav, 24000)
+        sf.write(out, wav, 24000, subtype="FLOAT")  # float: the model output can exceed 1.0, int16 would clip (crackle)
         score = 1.0
         if asr:
             segs, _ = asr.transcribe(str(out), language="th", beam_size=5)
@@ -65,7 +71,7 @@ if not a.no_polish:
     for f in sorted(Path(a.outdir).glob("[0-9][0-9][0-9].wav")):
         tmp = f.with_suffix(".tmp.wav")
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(f), "-af",
-                        "highpass=f=90,equalizer=f=300:t=q:w=0.8:g=-2,lowpass=f=9000,loudnorm=I=-16:TP=-1.5",
-                        "-ar", "24000", str(tmp)], check=True)
+                        "volume=-6dB,highpass=f=90,equalizer=f=300:t=q:w=0.8:g=-2,lowpass=f=9000,loudnorm=I=-16:TP=-1.5",
+                        "-ar", "24000", "-c:a", "pcm_s16le", str(tmp)], check=True)
         tmp.replace(f)
 print("done ->", a.outdir)

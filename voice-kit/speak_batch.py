@@ -6,6 +6,8 @@ Usage:
   python speak_batch.py --ref ref.wav --ref-text "ข้อความที่พูดใน ref.wav" \
       --script lines.txt --outdir out [--steps 32] [--no-verify]
 """
+import os, torch
+os.environ["PATH"] = os.path.join(os.path.dirname(torch.__file__), "lib") + os.pathsep + os.environ["PATH"]
 import argparse, difflib, re, subprocess, time
 from pathlib import Path
 import soundfile as sf

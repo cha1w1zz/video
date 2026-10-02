@@ -6,6 +6,8 @@ removes boominess with EQ (no AI denoiser), and writes the transcript.
 CHECK ref.txt against what you really said and fix wrong words
 (English words -> Thai reading, e.g. เทรน).
 """
+import os, torch
+os.environ["PATH"] = os.path.join(os.path.dirname(torch.__file__), "lib") + os.pathsep + os.environ["PATH"]
 import subprocess, sys
 from pathlib import Path
 

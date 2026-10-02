@@ -2,15 +2,13 @@
 
 > ยังไม่ได้ทดสอบบน GPU/Windows จริง (ทดสอบแล้วบน CPU) ถ้าติดปัญหาให้ส่งข้อความ error มา
 
-## ติดตั้ง (ครั้งเดียว)
-1. ติดตั้ง Python 3.11 และ ffmpeg
-2. เปิด Terminal ในโฟลเดอร์นี้ แล้วรัน:
-   ```
-   python -m venv venv
-   venv\Scripts\activate
-   pip install torch==2.4.0+cu124 torchaudio==2.4.0+cu124 --extra-index-url https://download.pytorch.org/whl/cu124
-   pip install -r requirements.txt
-   ```
+## วิธีง่ายที่สุด (Windows + การ์ดจอ NVIDIA ดับเบิลคลิก 3 ไฟล์)
+1. ดาวน์โหลดโปรเจกต์ (GitHub → Code → Download ZIP หรือ `git clone`) ใส่ไฟล์เสียงของคุณ (เช่น `Cleanmark.m4a`) ในโฟลเดอร์ `voice-kit`
+2. ดับเบิลคลิก **`0_setup.bat`** (ครั้งเดียว ใช้เวลาหลายนาที ถ้าบอกให้ปิดหน้าต่างแล้วรันใหม่ก็ทำตาม)
+3. ดับเบิลคลิก **`1_prepare_voice.bat`** แล้วตรวจคำใน `ref.txt` ที่เปิดขึ้นมา แก้คำผิด บันทึก
+4. แก้ `lines.txt` (1 บรรทัด = 1 ประโยค) แล้วดับเบิลคลิก **`2_make_audio.bat`** → ได้ไฟล์ใน `out`
+
+ถ้าไฟล์ไหน error ให้ก๊อปข้อความ error ส่งให้ Claude (ยังไม่ได้ทดสอบบน Windows จริง)
 
 ## เตรียมเสียงต้นแบบ (ทำบนการ์ดจอ ครั้งเดียว)
 ```

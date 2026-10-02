@@ -61,11 +61,11 @@ for i, text in enumerate(lines, 1):
     if best[0] < a.min_match:
         print(f"  !! line {i} still imperfect ({best[0]:.2f}) - listen to it / respell the words: {text}")
 if not a.no_polish:
-    # gentle cleanup: no gate/compressor, so it stays natural (not "studio")
+    # gentle tone fix (less boomy/muddy, a bit clearer): no gate/compressor, so it stays natural (not "studio")
     for f in sorted(Path(a.outdir).glob("[0-9][0-9][0-9].wav")):
         tmp = f.with_suffix(".tmp.wav")
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(f), "-af",
-                        "highpass=f=80,lowpass=f=7500,afftdn=nr=8:nf=-45,loudnorm=I=-16:TP=-1.5",
+                        "highpass=f=90,equalizer=f=300:t=q:w=0.8:g=-2,lowpass=f=9000,loudnorm=I=-16:TP=-1.5",
                         "-ar", "24000", str(tmp)], check=True)
         tmp.replace(f)
 print("done ->", a.outdir)

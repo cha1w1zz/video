@@ -6,7 +6,7 @@ Usage:
   python speak_batch.py --ref ref.wav --ref-text "ข้อความที่พูดใน ref.wav" \
       --script lines.txt --outdir out [--steps 32] [--no-verify]
 """
-import argparse, difflib, re, time
+import argparse, difflib, re, subprocess, time
 from pathlib import Path
 import soundfile as sf
 
@@ -19,6 +19,7 @@ p.add_argument("--steps", type=int, default=32, help="16 = faster, 32 = better")
 p.add_argument("--speeds", default="0.9,0.8,0.7,1.0", help="tried in order until a line verifies")
 p.add_argument("--min-match", type=float, default=0.9)
 p.add_argument("--no-verify", action="store_true")
+p.add_argument("--no-polish", action="store_true", help="skip the gentle de-wind/de-hiss cleanup")
 a = p.parse_args()
 
 import torch
@@ -59,4 +60,12 @@ for i, text in enumerate(lines, 1):
     Path(a.outdir, f"{i:03d}.wav").write_bytes(best[1])
     if best[0] < a.min_match:
         print(f"  !! line {i} still imperfect ({best[0]:.2f}) - listen to it / respell the words: {text}")
+if not a.no_polish:
+    # gentle cleanup: no gate/compressor, so it stays natural (not "studio")
+    for f in sorted(Path(a.outdir).glob("[0-9][0-9][0-9].wav")):
+        tmp = f.with_suffix(".tmp.wav")
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(f), "-af",
+                        "highpass=f=80,lowpass=f=7500,afftdn=nr=8:nf=-45,loudnorm=I=-16:TP=-1.5",
+                        "-ar", "24000", str(tmp)], check=True)
+        tmp.replace(f)
 print("done ->", a.outdir)

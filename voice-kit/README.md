@@ -30,3 +30,10 @@ python speak_batch.py --ref ref.wav --ref-text "ผลประชุมนั�
 
 ## ความเป็นส่วนตัว
 อย่า commit ไฟล์เสียงของคุณ (`ref.wav`, `out/`) ขึ้น GitHub สาธารณะ
+
+## ลดเสียงลม/เสียงฟู่
+- สคริปต์ล้างเสียงลมและเสียงฟู่ให้อัตโนมัติ (ตัดความถี่ต่ำ/สูงเกินเสียงพูด + ลดเสียงรบกวนเบาๆ ไม่ใช้ gate/compressor เพื่อให้ยังเป็นธรรมชาติ ไม่เหมือนสตูดิโอ)
+- ไม่ต้องการ: เติม `--no-polish`
+- เสียงต้นแบบ (`ref.wav`) ควรล้างลมก่อนด้วย (ffmpeg + RNNoise):
+  `ffmpeg -i ref.wav -af "highpass=f=90,arnndn=m=sh.rnnn:mix=0.85,loudnorm=I=-18" ref_clean.wav`
+  (ไฟล์ sh.rnnn โหลดจาก https://github.com/GregorR/rnnoise-models ชื่อ somnolent-hogwash)
